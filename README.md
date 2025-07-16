@@ -10,7 +10,6 @@ A modern World of Warcraft 1.14.2 launcher with integrated Hermes Proxy support 
 - 🔌 Built-in [Hermes Proxy](https://github.com/wowdev/hermes-proxy) for seamless server connection
 - 💻 Cross-platform using [Tauri](https://tauri.app)
 - 🎮 Auto-starts `Wow.exe` after successful connection
-- 🧰 Optional: Auto-patcher, news system, and Blizzard-style UI (customizable)
 
 ---
 
