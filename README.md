@@ -59,6 +59,7 @@ The `hermesproxy.config` file is preconfigured — no additional setup needed.
 - Default launch path is `Wow.exe` from the unpacked `win.rar` directory.
 - Launcher supports patching and updates via the internal patch system (optional).
 - Make sure the user has **write access** to the game directory.
+- Folder access are in *%appdata%/gryffin*
 
 ---
 
