@@ -1,6 +1,8 @@
-# Gryffin WoW Launcher
+# IMPORTANT NOTICE
 
-A modern World of Warcraft 1.14.2 launcher with integrated Hermes Proxy support — built specifically for **Gryffin WoW**.
+THIS CLIENT IS **NOT** OFFICIALLY ASSOCIATED WITH **GRYFFINWOW**.
+IT IS A CUSTOM LAUNCHER PROVIDED "AS IS" FOR TESTING AND PERSONAL USE ONLY.
+GRYFFINWOW DOES **NOT** ENDORSE, MAINTAIN, OR SUPPORT THIS LAUNCHER.
 
 ---
 
