@@ -6,47 +6,58 @@ A modern World of Warcraft 1.14.2 launcher with integrated Hermes Proxy support 
 
 ## ⚙️ Features
 
-- ✔️ Compatible with WoW Classic 1.14.2 (Build 42597)
-- 🔌 Built-in [Hermes Proxy](https://github.com/wowdev/hermes-proxy) for seamless connection to the private server
-- 💻 Cross-platform launcher using [Tauri](https://tauri.app)
-- 🎮 Automatically launches `Wow.exe` after establishing a connection
+- ✔️ Compatible with **WoW Classic 1.14.2 (Build 42597)**
+- 🔌 Built-in [Hermes Proxy](https://github.com/wowdev/hermes-proxy) for seamless server connection
+- 💻 Cross-platform using [Tauri](https://tauri.app)
+- 🎮 Auto-starts `Wow.exe` after successful connection
 - 🧰 Optional: Auto-patcher, news system, and Blizzard-style UI (customizable)
 
 ---
 
 ## 🧪 Development Mode
 
+To run the launcher in development mode:
 ```bash
 npm run tauri dev
-Launches the app in development mode — ideal for UI and connection testing.
+`````
 
-📦 Build Mode
-bash
-Kopieren
-Bearbeiten
+---
+
+## 📦 Build Mode
+
+To build a production-ready version:
+```bash
 npm run tauri build
-Builds a production-ready version of the launcher for end-users (EXE, AppImage, or DMG depending on platform).
+`````
 
-🖥 Requirements
-Node.js v18+
+---
 
-Rust
+## 🖥 Requirements
 
-Tauri CLI:
+- [Node.js](https://nodejs.org/) v18+
+- [Rust](https://www.rust-lang.org/tools/install)
+- Tauri CLI: cargo install tauri-cli
+- Git (required for building and version control)
 
-bash
-Kopieren
-Bearbeiten
-cargo install tauri-cli
-Git (required for building and version control)
+---
 
-🌐 Connection
-The launcher connects automatically through Hermes Proxy to the Gryffin WoW private server (1.14.2 compatible).
-The hermesproxy.config file is preconfigured — no additional setup needed.
+## 🌐 Connection
 
-🧩 Notes
-By default, Wow.exe is launched from the unpacked win.rar game directory.
+The launcher connects automatically via **Hermes Proxy** to the Gryffin WoW private server (1.14.2 compatible).  
+The `hermesproxy.config` file is preconfigured — no additional setup needed.
 
-Launcher updates and patches are supported via the optional patching system.
+---
 
-Ensure the launcher has write permissions to the installation folder.
+## 🧩 Notes
+
+- Default launch path is `Wow.exe` from the unpacked `win.rar` directory.
+- Launcher supports patching and updates via the internal patch system (optional).
+- Make sure the user has **write access** to the game directory.
+
+---
+
+## 💬 Support
+
+Need help or have suggestions?  
+→ Join our Discord: [https://discord.gg/gryffinwow](https://discord.gg/gryffinwow)  
+Or contact the Gryffin WoW dev team directly.
