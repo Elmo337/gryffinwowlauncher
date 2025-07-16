@@ -15,7 +15,7 @@ A modern World of Warcraft 1.14.2 launcher with integrated Hermes Proxy support 
 
 ## Install
 
-To run the launcher in development mode:
+To run the initial install
 ```bash
 npm install tauri
 `````
