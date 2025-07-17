@@ -31,6 +31,62 @@ fn gryffin_dir() -> Result<std::path::PathBuf, String> {
     Ok(path)
 }
 
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize)]
+struct RealmEntry {
+    name: String,
+    address: String,
+}
+
+#[tauri::command]
+fn load_realmlists() -> Result<Vec<RealmEntry>, String> {
+    let path = gryffin_dir()?.join("realmlists.json");
+    if !path.exists() {
+        return Ok(vec![]);
+    }
+    let data = fs::read_to_string(path).map_err(|e| e.to_string())?;
+    serde_json::from_str(&data).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_realmlist(entry: RealmEntry) -> Result<(), String> {
+    let path = gryffin_dir()?.join("realmlists.json");
+    let mut entries = if path.exists() {
+        let data = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+        serde_json::from_str(&data).unwrap_or_default()
+    } else {
+        vec![]
+    };
+
+    if !entries.iter().any(|e: &RealmEntry| e.name == entry.name) {
+        entries.push(entry);
+    }
+
+    let json = serde_json::to_string_pretty(&entries).map_err(|e| e.to_string())?;
+    fs::write(path, json).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn delete_realmlist(name: String) -> Result<(), String> {
+    let path = gryffin_dir()?.join("realmlists.json");
+
+    let mut entries: Vec<RealmEntry> = if path.exists() {
+        let data = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+        serde_json::from_str(&data).unwrap_or_default()
+    } else {
+        vec![]
+    };
+
+    entries.retain(|e| e.name != name);
+
+    let json = serde_json::to_string_pretty(&entries).map_err(|e| e.to_string())?;
+    fs::write(path, json).map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
 #[tauri::command]
 fn check_required_files() -> Result<bool, String> {
     let dir = gryffin_dir()?;
@@ -186,7 +242,7 @@ fn stop_game(window: tauri::Window) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn start_game(window: Window) -> Result<(), String> {
+async fn start_game(window: Window, realm: String) -> Result<(), String> {
     let base_dir = gryffin_dir()?;
 
     let hermes_dir = base_dir.join("Hermes");
@@ -194,13 +250,16 @@ async fn start_game(window: Window) -> Result<(), String> {
 
     let hermes_exe = hermes_dir.join("HermesProxy.exe");
     let game_exe = game_dir.join("WowClassic_ForCustomServers.exe");
+
+    // Config.wtf bleibt statisch auf 127.0.0.1
     configure_wow_settings(&game_dir)?;
     move_executable_to_wow_folder().ok();
 
+    // HermesProxy mit dynamischer Realmlist starten
     Command::new(&hermes_exe)
         .current_dir(&hermes_dir)
         .arg("--set")
-        .arg("ServerAddress=gryffinwow.com")
+        .arg(format!("ServerAddress={}", realm))
         .spawn()
         .map_err(|e| format!("Hermes konnte nicht gestartet werden: {}", e))?;
 
@@ -341,7 +400,7 @@ async fn start_download(
 fn main() {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(DownloadState { active: false })))
-        .invoke_handler(tauri::generate_handler![start_download, check_required_files, start_game, stop_game])
+        .invoke_handler(tauri::generate_handler![start_download, check_required_files, start_game, stop_game, load_realmlists, save_realmlist, delete_realmlist])
         .run(tauri::generate_context!())
         .expect("Fehler beim Starten der Tauri Anwendung");
 }
