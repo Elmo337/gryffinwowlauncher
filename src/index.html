@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GryffinWow Launcher</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       background-image: url('https://conquestcapped.com/image/cache/catalog/wow-classic/dungeons/sod-shadowfang-keep-630x400.png');
@@ -20,10 +21,10 @@
     }
 
     .wow-font {
-      font-family: 'Georgia', serif;
-      letter-spacing: 0.05em;
+      font-family: 'Poppins', sans-serif;
+      letter-spacing: 0.03em;
       color: #d6d6d6;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
     }
 
     .wow-button {
@@ -70,12 +71,8 @@
       <div class="flex gap-2">
         <button id="tabDownload" class="tab-btn wow-button text-sm px-3 py-1">Launcher</button>
         <button id="tabSettings" class="tab-btn wow-button text-sm px-3 py-1">Realmlist</button>
-        <button id="openAddonBtn" class="tab-btn wow-button text-sm px-3 py-1 flex items-center gap-2">Addons
-          <!-- Ordner-Icon (Heroicons) -->
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-          </svg>
-        </button>
+        <button id="tabAddon" class="tab-btn wow-button text-sm px-3 py-1">Download Addons</button>
+        <button id="openAddonBtn" class="tab-btn wow-button text-sm px-3 py-1">Addon-Folder</button>
       </div>
     </div>
   </nav>
@@ -147,7 +144,6 @@
           <span>Start Game</span>
         </button>
       </div>
-
       <div id="status" class="text-center text-sm text-gray-400">Ready to Download</div>
     </div>
 
@@ -157,9 +153,9 @@
 
       <!-- Saved Realms -->
       <div class="mb-8">
-        <h3 class="text-lg font-semibold text-gray-300 mb-2">Saved Realms</h3>
+        <h3 class="text-lg font-semibold text-gray-300 mb-2">Selected Server</h3>
         <select id="realmSelect" class="w-full p-2 rounded bg-black bg-opacity-40 text-white border border-gray-700"></select>
-        <button id="deleteRealmBtn" class="wow-button w-full mt-2 bg-red-600 hover:bg-red-700">Delete Selected Realm</button>
+        <button id="deleteRealmBtn" class="wow-button w-full mt-2 bg-red-600 hover:bg-red-700">Delete Selected Server</button>
       </div>
 
       <!-- New Realm -->
@@ -169,6 +165,10 @@
         <input id="realmAddress" class="w-full p-2 mb-4 bg-black bg-opacity-40 text-white rounded border border-gray-700" placeholder="IP or domain (e.g. 127.0.0.1)" />
         <button id="saveRealmBtn" class="wow-button w-full">Save Realm</button>
       </div>
+    </div>
+    <div id="addonSection" class="max-w-2xl mx-auto glass rounded-xl shadow-lg overflow-hidden p-8 hidden">
+      <h2 class="text-2xl font-bold text-gray-300 mb-4">Addons</h2>
+      <div id="addonList" class="space-y-3 text-sm"></div>
     </div>
   </main>
 

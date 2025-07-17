@@ -19,14 +19,94 @@ document.addEventListener('DOMContentLoaded', () => {
   function showTab(tab) {
     document.getElementById("downloadSection").classList.toggle("hidden", tab !== "download");
     document.getElementById("settingsSection").classList.toggle("hidden", tab !== "settings");
+    document.getElementById("addonSection").classList.toggle("hidden", tab !== "addon");
 
     document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active-tab"));
     if (tab === "download") {
       document.getElementById("tabDownload").classList.add("active-tab");
-    } else {
+    } else if (tab === "settings") {
       document.getElementById("tabSettings").classList.add("active-tab");
+    } else if (tab === "addon") {
+      document.getElementById("tabAddon").classList.add("active-tab");
+      renderAddons(); // <-- wird aufgerufen, wenn Addon-Tab geöffnet wird
     }
   }
+
+  const availableAddons = [
+    { name: "Questie", url: "http://31.56.45.75/addons/questie.rar" },
+    { name: "Atlas_ClassicWoW", url: "http://31.56.45.75/addons/atlas.rar" },
+    { name: "Bartender4", url: "http://31.56.45.75/addons/bartender.rar" },
+    { name: "VendorPrice", url: "http://31.56.45.75/addons/vendor.rar" },
+    { name: "Mapster", url: "http://31.56.45.75/addons/mapster.rar" },
+    { name: "Bagnon", url: "http://31.56.45.75/addons/bagnon.rar" }
+  ];
+
+  async function renderAddons() {
+    const container = document.getElementById("addonList");
+    container.innerHTML = "";
+
+    const installedAddons = await window.__TAURI__.invoke("get_installed_addons");
+
+    availableAddons.forEach((addon) => {
+      const wrapper = document.createElement("label");
+      wrapper.className = "relative flex items-center gap-3 cursor-pointer text-gray-300 mb-2";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = `
+        peer
+        appearance-none
+        h-5 w-5
+        border-2 border-gray-600
+        rounded
+        bg-black bg-opacity-30
+        checked:bg-green-600
+        checked:border-green-500
+        transition-all
+        duration-200
+      `.replace(/\s+/g, ' ').trim();
+
+      // Vorab markieren, wenn installiert
+      if (installedAddons.includes(addon.name)) {
+        checkbox.checked = true;
+      }
+
+      const checkIcon = document.createElement("span");
+      checkIcon.className = `
+        pointer-events-none
+        absolute left-0 top-0
+        flex items-center justify-center
+        h-5 w-5
+        text-white
+        hidden
+        peer-checked:flex
+      `.replace(/\s+/g, ' ').trim();
+
+      checkIcon.innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      `;
+
+      const labelText = document.createElement("span");
+      labelText.className = "pl-6";
+      labelText.textContent = addon.name;
+
+      checkbox.addEventListener("change", async () => {
+        if (checkbox.checked) {
+          await window.__TAURI__.invoke("install_addon", { entry: addon });
+        } else {
+          await window.__TAURI__.invoke("uninstall_addon", { name: addon.name });
+        }
+      });
+
+      wrapper.appendChild(checkbox);
+      wrapper.appendChild(checkIcon);
+      wrapper.appendChild(labelText);
+      container.appendChild(wrapper);
+    });
+  }
+
 
   document.getElementById("openAddonBtn").addEventListener("click", async () => {
     try {
@@ -39,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById("tabDownload").addEventListener("click", () => showTab("download"));
   document.getElementById("tabSettings").addEventListener("click", () => showTab("settings"));
+  document.getElementById("tabAddon").addEventListener("click", () => showTab("addon"));
 
   // Realmlist laden
   async function loadRealmlists() {

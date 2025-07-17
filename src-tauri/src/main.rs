@@ -128,6 +128,30 @@ fn check_required_files() -> Result<bool, String> {
     Ok(true) // Alle Dateien vorhanden
 }
 
+#[tauri::command]
+fn get_installed_addons() -> Result<Vec<String>, String> {
+    let addon_dir = gryffin_dir()?.join("World of Warcraft/_classic_era_/Interface/AddOns");
+
+    if !addon_dir.exists() {
+        return Ok(vec![]);
+    }
+
+    let entries = fs::read_dir(addon_dir).map_err(|e| e.to_string())?;
+    let mut installed = vec![];
+
+    for entry in entries {
+        if let Ok(entry) = entry {
+            if entry.path().is_dir() {
+                if let Some(name) = entry.file_name().to_str() {
+                    installed.push(name.to_string());
+                }
+            }
+        }
+    }
+
+    Ok(installed)
+}
+
 fn move_executable_to_wow_folder() -> Result<(), String> {
     let download_dir = gryffin_dir()?;
 
@@ -260,6 +284,57 @@ fn stop_game(window: tauri::Window) -> Result<(), String> {
     window.emit("game_stopped", {}).ok();
     Ok(())
 }
+
+#[derive(serde::Deserialize)]
+pub struct AddonEntry {
+    name: String,
+    url: String,
+}
+
+#[tauri::command]
+async fn install_addon(entry: AddonEntry, window: Window) -> Result<(), String> {
+    let gryffin = gryffin_dir()?;
+    let addon_dir = gryffin.join("World of Warcraft/_classic_era_/Interface/AddOns");
+    let rar_path = addon_dir.join(format!("{}.rar", entry.name));
+
+    // Download
+    let response = reqwest::get(&entry.url).await.map_err(|e| e.to_string())?;
+    let content = response.bytes().await.map_err(|e| e.to_string())?;
+    fs::create_dir_all(&addon_dir).ok();
+    fs::write(&rar_path, &content).map_err(|e| e.to_string())?;
+
+    // Entpacken mit unrar
+    let unrar = gryffin.join("unrar.exe");
+    let extract_to = addon_dir.to_string_lossy().to_string();
+
+    let output = Command::new(unrar)
+        .args(["x", "-y", &rar_path.to_string_lossy(), &extract_to])
+        .creation_flags(0x08000000)
+        .output()
+        .map_err(|e| format!("Fehler beim Entpacken: {}", e))?;
+
+    if !output.status.success() {
+        return Err("Entpacken fehlgeschlagen".into());
+    }
+
+    fs::remove_file(&rar_path).ok();
+    window.emit("addon_installed", entry.name.clone()).ok();
+    Ok(())
+}
+
+#[tauri::command]
+fn uninstall_addon(name: String) -> Result<(), String> {
+    let path = gryffin_dir()?
+        .join("World of Warcraft/_classic_era_/Interface/AddOns")
+        .join(&name);
+
+    if path.exists() {
+        fs::remove_dir_all(&path).map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
+}
+
 
 #[tauri::command]
 async fn start_game(window: Window, realm: String) -> Result<(), String> {
@@ -420,7 +495,7 @@ async fn start_download(
 fn main() {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(DownloadState { active: false })))
-        .invoke_handler(tauri::generate_handler![start_download, check_required_files, start_game, stop_game, load_realmlists, save_realmlist, delete_realmlist, open_addon_folder])
+        .invoke_handler(tauri::generate_handler![start_download, check_required_files, start_game, stop_game, load_realmlists, save_realmlist, delete_realmlist, open_addon_folder, install_addon, uninstall_addon, get_installed_addons])
         .run(tauri::generate_context!())
         .expect("Fehler beim Starten der Tauri Anwendung");
 }

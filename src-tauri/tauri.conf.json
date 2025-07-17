@@ -22,7 +22,7 @@
     "windows": [
       {
         "title": "GryffinWow Launcher",
-        "width": 1000,
+        "width": 1200,
         "height": 800,
         "resizable": true,
         "fullscreen": false,
