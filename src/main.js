@@ -223,15 +223,27 @@ document.addEventListener('DOMContentLoaded', () => {
   // 🔥 Delete-Button aktivieren
   document.getElementById("deleteRealmBtn").onclick = async () => {
     const selectedRealm = selectedRealmInput.value;
-    const selectedName = realmSelectValue.textContent;
+
 
     if (!selectedRealm) {
-      alert("Kein Realm ausgewählt.");
+      errorMsg.classList.remove("hidden");
+      errorMsg.textContent = "❌ Please select realm";
+
+      setTimeout(() => {
+        errorMsg.classList.add("hidden");
+      }, 3000);
+
       return;
     }
 
     if (selectedRealm === "gryffinwow.com") {
-      alert("Der Standardrealm GryffinWoW kann nicht gelöscht werden.");
+      errorMsg.classList.remove("hidden");
+      errorMsg.textContent = "❌ Standard Realm cant be deleted";
+
+      setTimeout(() => {
+        errorMsg.classList.add("hidden");
+      }, 3000);
+
       return;
     }
 
@@ -266,21 +278,50 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById("saveRealmBtn").addEventListener("click", async () => {
     const name = document.getElementById("realmName").value;
     const address = document.getElementById("realmAddress").value;
-    if (!name || !address) return alert("Please enter both name and address");
+    if (!name || !address) {
+      errorMsg.classList.remove("hidden");
+      errorMsg.textContent = "❌ Fill both Fields";
+
+      setTimeout(() => {
+        errorMsg.classList.add("hidden");
+      }, 3000);
+
+      return;
+    }
+      
 
     await invoke("save_realmlist", { entry: { name, address } });
     await loadRealmlists();
 
+    // 🧠 Direkt neu gesetzten Realm aktivieren
+    localStorage.setItem("selectedRealm", address);
+    document.getElementById("selectedRealm").value = address;
+    document.getElementById("realmSelectValue").textContent = `${name} (${address})`;
+
+    // Optional: Reset input fields
     document.getElementById("realmName").value = "";
     document.getElementById("realmAddress").value = "";
 
-    showTab("download"); // zurück zur Hauptansicht
+    // Zurück zur Download-Ansicht
+    showTab("download");
   });
 
   // Spiel starten
   playBtn.addEventListener("click", async () => {
     const selectedRealm = document.getElementById("selectedRealm").value;
-    if (!selectedRealm) return alert("Please select a realm!");
+    const errorMsg = document.getElementById("realmError");
+
+    if (!selectedRealm) {
+      errorMsg.classList.remove("hidden");
+      errorMsg.textContent = "❌ Please Choose a Realmlist";
+
+      setTimeout(() => {
+        errorMsg.classList.add("hidden");
+      }, 3000);
+
+      return;
+    }
+
 
     if (!gameRunning) {
       status.textContent = "Game starting...";

@@ -11,7 +11,7 @@ edition = "2021"
 tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1.0", features = [ "window-close", "window-minimize", "shell-all"] }
+tauri = { version = "1.0", features = [ "dialog-all", "window-close", "window-minimize", "shell-all"] }
 reqwest = { version = "0.11", features = ["stream"] }
 futures-util = "0.3"
 tokio = { version = "1.0", features = ["full", "sync"] }
