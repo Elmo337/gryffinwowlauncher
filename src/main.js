@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!stillExists) {
         selectedRealmInput.value = "";
-        realmSelectValue.textContent = "Realm auswählen";
+        realmSelectValue.textContent = "Select realm";
       } else {
         // Realm wurde nicht gelöscht? (sollte nicht passieren)
         console.warn("Realm existiert nach Löschung noch?");
