@@ -11,6 +11,10 @@
   },
   "tauri": {
     "allowlist": {
+      "window": {
+        "minimize": true,
+        "close": true
+      },
       "all": false,
       "shell": {
         "all": true
@@ -22,12 +26,12 @@
     "windows": [
       {
         "title": "World of Warcraft 1.14.2 Launcher",
-        "width": 1200,
-        "height": 800,
+        "width": 800,
+        "height": 650,
         "resizable": true,
         "fullscreen": false,
         "transparent": false,
-        "decorations": true,
+        "decorations": false,
         "visible": true,
         "center": true,
         "minimizable": true,

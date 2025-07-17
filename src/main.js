@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const { invoke, event: tauriEvent } = window.__TAURI__;
+  const { invoke, event: tauriEvent, window: tauriWindow } = window.__TAURI__;
+  const appWindow = tauriWindow.appWindow;
 
   const downloadBtn = document.getElementById('downloadBtn');
   const playBtn = document.getElementById('playBtn');
@@ -11,6 +12,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const speed = document.getElementById('speed');
   const downloaded = document.getElementById('downloaded');
   const status = document.getElementById('status');
+
+  let selectedRealmInput;
+  let realmSelectValue;
+  let realmList;
+
+  document.getElementById("minimizeBtn").addEventListener("click", () => {
+    appWindow.minimize();
+  });
+
+  document.getElementById("closeBtn").addEventListener("click", () => {
+    appWindow.close();
+  });
 
   let gameRunning = false;
   let unlisten = null;
@@ -124,37 +137,128 @@ document.addEventListener('DOMContentLoaded', () => {
   // Realmlist laden
   async function loadRealmlists() {
     const realms = await invoke("load_realmlists");
-    const select = document.getElementById("realmSelect");
+    realmList = document.getElementById("realmList");
+    const realmLabel = document.getElementById("realmLabel");
+    realmSelectValue = document.getElementById("realmSelectValue");
+    selectedRealmInput = document.getElementById("selectedRealm");
 
-    select.innerHTML = "";
+    const savedRealm = localStorage.getItem("selectedRealm") || "";
 
-    // 🔐 Fester Eintrag: gryffinwow.com
-    const gryffinOption = document.createElement("option");
-    gryffinOption.value = "gryffinwow.com";
-    gryffinOption.textContent = "GryffinWoW (gryffinwow.com)";
-    select.appendChild(gryffinOption);
+    realmList.innerHTML = "";
 
-    // 🔁 Dann alle gespeicherten Realms anhängen
+    function createRealmItem(name, address) {
+      const li = document.createElement("li");
+      li.textContent = `${name} (${address})`;
+      li.dataset.value = address;
+
+      li.style.padding = "10px 12px";
+      li.style.cursor = "pointer";
+      li.style.backgroundColor = "#111";
+      li.style.color = "#888";
+      li.style.borderBottom = "1px solid #222";
+      li.style.transition = "all 0.2s ease";
+      li.style.userSelect = "none";
+
+      // Hover
+      li.addEventListener("mouseenter", () => {
+        li.style.backgroundColor = "#1e1e1e";
+        li.style.color = "#ddd";
+      });
+      li.addEventListener("mouseleave", () => {
+        if (!li.classList.contains("selected")) {
+          li.style.backgroundColor = "#111";
+          li.style.color = "#888";
+        }
+      });
+
+      // Klick / Auswahl
+      li.addEventListener("click", () => {
+        document.querySelectorAll("#realmList li").forEach(el => {
+          el.classList.remove("selected");
+          el.style.backgroundColor = "#111";
+          el.style.color = "#888";
+        });
+
+        li.classList.add("selected");
+        li.style.backgroundColor = "#2a2a2a";
+        li.style.color = "#fff";
+
+        realmSelectValue.textContent = `${name} (${address})`;
+        selectedRealmInput.value = address;
+
+        // 🔒 Auswahl speichern
+        localStorage.setItem("selectedRealm", address);
+
+        realmList.classList.add("hidden");
+      });
+
+      // 🔁 Wiederherstellen der vorherigen Auswahl
+      if (address === savedRealm) {
+        li.classList.add("selected");
+        li.style.backgroundColor = "#2a2a2a";
+        li.style.color = "#fff";
+        realmSelectValue.textContent = `${name} (${address})`;
+        selectedRealmInput.value = address;
+      }
+
+      return li;
+    }
+
+    // Fester Realm immer zuerst
+    realmList.appendChild(createRealmItem("GryffinWoW", "gryffinwow.com"));
+
     realms.forEach(r => {
-        const option = document.createElement("option");
-        option.value = r.address;
-        option.textContent = `${r.name} (${r.address})`;
-        select.appendChild(option);
+      realmList.appendChild(createRealmItem(r.name, r.address));
     });
+
+    // Nur einmal registrieren!
+    if (!realmLabel.classList.contains("bound")) {
+      realmLabel.addEventListener("click", () => {
+        realmList.classList.toggle("hidden");
+      });
+      realmLabel.classList.add("bound"); // nicht doppelt binden
+    }
   }
 
-  document.getElementById("deleteRealmBtn").addEventListener("click", async () => {
-    const select = document.getElementById("realmSelect");
-    const selectedOption = select.options[select.selectedIndex];
-    if (!selectedOption) return alert("Please select a realm to delete");
+  // 🔥 Delete-Button aktivieren
+  document.getElementById("deleteRealmBtn").onclick = async () => {
+    const selectedRealm = selectedRealmInput.value;
+    const selectedName = realmSelectValue.textContent;
 
-    const realmName = selectedOption.textContent.split(" (")[0]; // Nur den Namen extrahieren
-
-    if (confirm(`Delete realm "${realmName}"?`)) {
-        await invoke("delete_realmlist", { name: realmName });
-        await loadRealmlists();
+    if (!selectedRealm) {
+      alert("Kein Realm ausgewählt.");
+      return;
     }
-  });
+
+    if (selectedRealm === "gryffinwow.com") {
+      alert("Der Standardrealm GryffinWoW kann nicht gelöscht werden.");
+      return;
+    }
+
+    try {
+      await invoke("delete_realmlist", { address: selectedRealm });
+      console.log("✅ Gelöscht:", selectedRealm);
+
+      // Nach dem Löschen neu laden
+      await loadRealmlists();
+
+      // 🔁 Prüfen, ob gelöschter Realm noch existiert
+      const remaining = await invoke("load_realmlists");
+      const stillExists = remaining.some(r => r.address === selectedRealm);
+
+      if (!stillExists) {
+        selectedRealmInput.value = "";
+        realmSelectValue.textContent = "Realm auswählen";
+      } else {
+        // Realm wurde nicht gelöscht? (sollte nicht passieren)
+        console.warn("Realm existiert nach Löschung noch?");
+      }
+
+    } catch (err) {
+      alert("Fehler beim Löschen: " + err);
+      console.error(err);
+    }
+  };
 
   loadRealmlists();
 
@@ -175,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Spiel starten
   playBtn.addEventListener("click", async () => {
-    const selectedRealm = document.getElementById("realmSelect").value;
+    const selectedRealm = document.getElementById("selectedRealm").value;
     if (!selectedRealm) return alert("Please select a realm!");
 
     if (!gameRunning) {

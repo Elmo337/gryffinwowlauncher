@@ -33,10 +33,10 @@ fn gryffin_dir() -> Result<std::path::PathBuf, String> {
 
 use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize)]
-struct RealmEntry {
-    name: String,
-    address: String,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RealmEntry {
+    pub name: String,
+    pub address: String,
 }
 
 #[tauri::command]
@@ -69,20 +69,26 @@ fn save_realmlist(entry: RealmEntry) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn delete_realmlist(name: String) -> Result<(), String> {
+fn delete_realmlist(address: String) -> Result<(), String> {
     let path = gryffin_dir()?.join("realmlists.json");
 
-    let mut entries: Vec<RealmEntry> = if path.exists() {
-        let data = fs::read_to_string(&path).map_err(|e| e.to_string())?;
-        serde_json::from_str(&data).unwrap_or_default()
-    } else {
-        vec![]
-    };
+    if !path.exists() {
+        return Ok(()); // Nichts zu löschen
+    }
 
-    entries.retain(|e| e.name != name);
+    let data = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let mut realms: Vec<RealmEntry> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
 
-    let json = serde_json::to_string_pretty(&entries).map_err(|e| e.to_string())?;
-    fs::write(path, json).map_err(|e| e.to_string())?;
+    let address_clean = address.trim().to_lowercase();
+    let original_len = realms.len();
+
+    realms.retain(|r| r.address.trim().to_lowercase() != address_clean);
+
+    println!("🗑️ Lösche Realm: {}", address_clean);
+    println!("Vorher: {}, Nachher: {}", original_len, realms.len());
+
+    let new_data = serde_json::to_string_pretty(&realms).map_err(|e| e.to_string())?;
+    fs::write(&path, new_data).map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -495,7 +501,7 @@ async fn start_download(
 fn main() {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(DownloadState { active: false })))
-        .invoke_handler(tauri::generate_handler![start_download, check_required_files, start_game, stop_game, load_realmlists, save_realmlist, delete_realmlist, open_addon_folder, install_addon, uninstall_addon, get_installed_addons])
+        .invoke_handler(tauri::generate_handler![start_download, check_required_files, start_game, stop_game, load_realmlists, save_realmlist, open_addon_folder, delete_realmlist, install_addon, uninstall_addon, get_installed_addons])
         .run(tauri::generate_context!())
         .expect("Fehler beim Starten der Tauri Anwendung");
 }
