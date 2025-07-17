@@ -28,6 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  document.getElementById("openAddonBtn").addEventListener("click", async () => {
+    try {
+        await window.__TAURI__.invoke("open_addon_folder");
+    } catch (error) {
+        alert("Konnte den Addon-Ordner nicht öffnen.");
+        console.error(error);
+    }
+    });
+
   document.getElementById("tabDownload").addEventListener("click", () => showTab("download"));
   document.getElementById("tabSettings").addEventListener("click", () => showTab("settings"));
 

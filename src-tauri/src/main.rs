@@ -88,6 +88,26 @@ fn delete_realmlist(name: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn open_addon_folder() -> Result<(), String> {
+    let base_dir = gryffin_dir()?;
+    let addons_path = base_dir
+        .join("World of Warcraft")
+        .join("_classic_era_")
+        .join("Interface")
+        .join("AddOns");
+
+    fs::create_dir_all(&addons_path).map_err(|e| format!("Ordner konnte nicht erstellt werden: {}", e))?;
+
+    // Öffne den Ordner im Explorer
+    Command::new("explorer")
+        .arg(addons_path)
+        .spawn()
+        .map_err(|e| format!("Explorer konnte nicht geöffnet werden: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
 fn check_required_files() -> Result<bool, String> {
     let dir = gryffin_dir()?;
 
@@ -400,7 +420,7 @@ async fn start_download(
 fn main() {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(DownloadState { active: false })))
-        .invoke_handler(tauri::generate_handler![start_download, check_required_files, start_game, stop_game, load_realmlists, save_realmlist, delete_realmlist])
+        .invoke_handler(tauri::generate_handler![start_download, check_required_files, start_game, stop_game, load_realmlists, save_realmlist, delete_realmlist, open_addon_folder])
         .run(tauri::generate_context!())
         .expect("Fehler beim Starten der Tauri Anwendung");
 }
