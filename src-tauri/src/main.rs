@@ -12,6 +12,8 @@ use std::io::{BufReader, BufRead};
 use std::path::Path;
 use std::fs::{self};
 use std::os::windows::process::CommandExt;
+use std::process::Stdio;
+use std::thread;
 
 
 #[derive(Default)]
@@ -228,7 +230,7 @@ fn configure_wow_settings(wow_path: &Path) -> Result<(), String> {
     Ok(())
 }
 
-fn extract_rar(window: Window, archive_path: &str, extract_to: &str) -> Result<(), String> {
+fn extract_rar(_window: Window, archive_path: &str, extract_to: &str) -> Result<(), String> {
     let download_dir = gryffin_dir()?;
     let unrar_path = download_dir.join("unrar.exe");
     const CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -345,24 +347,44 @@ fn uninstall_addon(name: String) -> Result<(), String> {
 #[tauri::command]
 async fn start_game(window: Window, realm: String) -> Result<(), String> {
     let base_dir = gryffin_dir()?;
-
     let hermes_dir = base_dir.join("Hermes");
     let game_dir = base_dir.join("World of Warcraft/_classic_era_");
 
     let hermes_exe = hermes_dir.join("HermesProxy.exe");
     let game_exe = game_dir.join("WowClassic_ForCustomServers.exe");
 
-    // Config.wtf bleibt statisch auf 127.0.0.1
     configure_wow_settings(&game_dir)?;
     move_executable_to_wow_folder().ok();
 
-    // HermesProxy mit dynamischer Realmlist starten
-    Command::new(&hermes_exe)
+    // 🧪 Starte HermesProxy mit Live-Logübertragung
+    let mut child = Command::new(&hermes_exe)
         .current_dir(&hermes_dir)
         .arg("--set")
         .arg(format!("ServerAddress={}", realm))
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| format!("Hermes konnte nicht gestartet werden: {}", e))?;
+
+    // Logs auslesen
+    let stdout = child.stdout.take().unwrap();
+    let stderr = child.stderr.take().unwrap();
+    let win_clone = window.clone();
+
+    thread::spawn(move || {
+        let reader = BufReader::new(stdout);
+        for line in reader.lines().flatten() {
+            win_clone.emit("hermes_log", line).ok();
+        }
+    });
+
+    let win_clone2 = window.clone();
+    thread::spawn(move || {
+        let reader = BufReader::new(stderr);
+        for line in reader.lines().flatten() {
+            win_clone2.emit("hermes_log", format!("[stderr] {}", line)).ok();
+        }
+    });
 
     window.emit("hermes_started", {}).ok();
 
@@ -374,7 +396,6 @@ async fn start_game(window: Window, realm: String) -> Result<(), String> {
         .map_err(|e| format!("Spiel konnte nicht gestartet werden: {}", e))?;
 
     window.emit("game_started", {}).ok();
-
     Ok(())
 }
 

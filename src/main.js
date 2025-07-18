@@ -13,6 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const downloaded = document.getElementById('downloaded');
   const status = document.getElementById('status');
 
+  window.__TAURI__.event.listen("hermes_log", ({ payload }) => {
+    const hermesConsole = document.getElementById("hermesConsole");
+    hermesConsole.classList.remove("hidden");
+    hermesConsole.textContent += payload + "\n";
+    hermesConsole.scrollTop = hermesConsole.scrollHeight;
+  });
+
   let selectedRealmInput;
   let realmSelectValue;
   let realmList;
@@ -274,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadRealmlists();
 
+
   // Realm speichern
   document.getElementById("saveRealmBtn").addEventListener("click", async () => {
     const name = document.getElementById("realmName").value;
@@ -413,7 +421,6 @@ document.addEventListener('DOMContentLoaded', () => {
     .catch((err) => {
       console.error("Fehler beim Überprüfen der Spieldateien:", err);
     });
-
   // Prozesse beenden bei Start
   invoke("stop_game").catch(console.error);
 });
