@@ -29,8 +29,8 @@
     "windows": [
       {
         "title": "World of Warcraft 1.14.2 Launcher",
-        "width": 800,
-        "height": 700,
+        "width": 1092,
+        "height": 601,
         "resizable": true,
         "fullscreen": false,
         "transparent": false,

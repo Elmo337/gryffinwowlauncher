@@ -356,11 +356,14 @@ async fn start_game(window: Window, realm: String) -> Result<(), String> {
     configure_wow_settings(&game_dir)?;
     move_executable_to_wow_folder().ok();
 
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+
     // 🧪 Starte HermesProxy mit Live-Logübertragung
     let mut child = Command::new(&hermes_exe)
         .current_dir(&hermes_dir)
         .arg("--set")
         .arg(format!("ServerAddress={}", realm))
+        .creation_flags(CREATE_NO_WINDOW)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
