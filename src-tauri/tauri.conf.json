@@ -16,7 +16,8 @@
       },
       "window": {
         "minimize": true,
-        "close": true
+        "close": true,
+        "startDragging": true
       },
       "all": false,
       "shell": {
@@ -29,9 +30,10 @@
     "windows": [
       {
         "title": "World of Warcraft 1.14.2 Launcher",
+        "label": "main",
         "width": 1092,
         "height": 601,
-        "resizable": true,
+        "resizable": false,
         "fullscreen": false,
         "transparent": false,
         "decorations": false,

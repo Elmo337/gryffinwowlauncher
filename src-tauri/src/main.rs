@@ -116,24 +116,44 @@ fn open_addon_folder() -> Result<(), String> {
 }
 
 #[tauri::command]
-fn check_required_files() -> Result<bool, String> {
+fn check_required_files() -> Result<(bool, String), String> {
     let dir = gryffin_dir()?;
 
-    // Liste der Dateien, die vorhanden sein müssen
-    let required_files = vec![
-        "World of Warcraft",
-        "Hermes",
-        "unrar.exe",
-    ];
+    // Dateien und Ordner
+    let wow_folder = dir.join("World of Warcraft");
+    let hermes_file = dir.join("Hermes");
+    let unrar_file = dir.join("unrar.exe");
 
-    for file in required_files {
-        let path = dir.join(file);
-        if !path.exists() {
-            return Ok(false); // Mindestens eine Datei fehlt
-        }
+    if !wow_folder.exists() || !hermes_file.exists() || !unrar_file.exists() {
+        return Ok((false, "One or more required files are missing.".to_string()));
     }
 
-    Ok(true) // Alle Dateien vorhanden
+    // Größe des "World of Warcraft"-Ordners berechnen
+    fn folder_size(path: &std::path::Path) -> u64 {
+        let mut size = 0;
+        if let Ok(entries) = std::fs::read_dir(path) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    if let Ok(metadata) = std::fs::metadata(&path) {
+                        size += metadata.len();
+                    }
+                } else if path.is_dir() {
+                    size += folder_size(&path);
+                }
+            }
+        }
+        size
+    }
+
+    let wow_size = folder_size(&wow_folder);
+    let size_gb = wow_size as f64 / 1024.0 / 1024.0 / 1024.0;
+
+    if size_gb < 6.0 {
+        return Ok((false, format!("World of Warcraft folder too small: {:.2} GB", size_gb)));
+    }
+
+    Ok((true, format!("Game is ready to launch")))
 }
 
 #[tauri::command]
@@ -427,13 +447,14 @@ async fn start_download(
 
     for (url, filename) in download_urls {
         let download_path = download_base_dir.join(filename);
+        let temp_path = download_base_dir.join(format!("{}.part", filename));
 
-        // Datei-Check: Wenn Datei schon existiert, überspringen
-        if download_path.exists() {
+        // Datei-Check: Nur akzeptieren, wenn Datei vollständig ist
+        if download_path.exists() && !temp_path.exists() {
             println!("⏩ Datei bereits vorhanden, überspringe: {}", filename);
             window.emit("download_skipped", serde_json::json!({ "file": filename })).ok();
-            
-            // Trotzdem entpacken, falls nötig
+
+            // Entpacken trotzdem versuchen
             let archive_str = download_path.to_string_lossy();
             let extract_to = download_path
                 .parent()
@@ -463,8 +484,8 @@ async fn start_download(
         let mut stream = res.bytes_stream();
         let mut last_update = Instant::now();
 
-        let mut file = File::create(&download_path)
-            .map_err(|e| format!("Datei konnte nicht erstellt werden: {}", e))?;
+        let mut file = File::create(&temp_path)
+            .map_err(|e| format!("Temporäre Datei konnte nicht erstellt werden: {}", e))?;
 
         while let Some(item) = stream.next().await {
             let chunk = item.map_err(|e| format!("Datenfehler: {}", e))?;
@@ -497,6 +518,8 @@ async fn start_download(
             }
         }
         drop(file);
+        std::fs::rename(&temp_path, &download_path)
+            .map_err(|e| format!("Fehler beim Umbenennen der Datei: {}", e))?;
 
         println!("✅ Download abgeschlossen: {:?}", download_path);
 

@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       li.style.padding = "10px 12px";
       li.style.cursor = "pointer";
-      li.style.backgroundColor = "#111";
+      li.style.backgroundColor = "16 16 18 / 23%";
       li.style.color = "#888";
       li.style.borderBottom = "1px solid #222";
       li.style.transition = "all 0.2s ease";
@@ -168,12 +168,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Hover
       li.addEventListener("mouseenter", () => {
-        li.style.backgroundColor = "#1e1e1e";
+        li.style.backgroundColor = "16 16 18 / 23%";
         li.style.color = "#ddd";
       });
       li.addEventListener("mouseleave", () => {
         if (!li.classList.contains("selected")) {
-          li.style.backgroundColor = "#111";
+          li.style.backgroundColor = "16 16 18 / 23%";
           li.style.color = "#888";
         }
       });
@@ -182,13 +182,13 @@ document.addEventListener('DOMContentLoaded', () => {
       li.addEventListener("click", () => {
         document.querySelectorAll("#realmList li").forEach(el => {
           el.classList.remove("selected");
-          el.style.backgroundColor = "#111";
+          el.style.backgroundColor = "16 16 18 / 23%";
           el.style.color = "#888";
         });
 
         li.classList.add("selected");
-        li.style.backgroundColor = "#2a2a2a";
-        li.style.color = "#fff";
+        li.style.backgroundColor = "16 16 18 / 23%";
+        li.style.color = "16 16 18 / 23%";
 
         realmSelectValue.textContent = `${name} (${address})`;
         selectedRealmInput.value = address;
@@ -202,8 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // 🔁 Wiederherstellen der vorherigen Auswahl
       if (address === savedRealm) {
         li.classList.add("selected");
-        li.style.backgroundColor = "#2a2a2a";
-        li.style.color = "#fff";
+        li.style.backgroundColor = "16 16 18 / 23%";
+        li.style.color = "16 16 18 / 23%";
         realmSelectValue.textContent = `${name} (${address})`;
         selectedRealmInput.value = address;
       }
@@ -348,12 +348,20 @@ document.addEventListener('DOMContentLoaded', () => {
     gameRunning = true;
     playBtn.textContent = "Close Game";
     status.textContent = "Game is running";
+
+    // Button visuell rot machen
+    playBtn.classList.remove("bg-green-600", "hover:bg-green-700");
+    playBtn.classList.add("bg-red-600", "hover:bg-red-700");
   });
 
   tauriEvent.listen("game_stopped", () => {
     gameRunning = false;
     playBtn.textContent = "Start Game";
     status.textContent = "Game closed";
+
+    // Button wieder grün machen
+    playBtn.classList.remove("bg-red-600", "hover:bg-red-700");
+    playBtn.classList.add("bg-green-600", "hover:bg-green-700");
   });
 
   // Download starten
@@ -375,9 +383,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       await invoke('start_download');
 
-      status.textContent = "Download successful!";
+      // UI nach Erfolg anpassen
+      status.textContent = "✅ Download successful!";
       playBtn.classList.remove('hidden');
-      buttonText.textContent = "Download again";
+      downloadBtn.classList.add('hidden');
+      progressInfo.classList.add('hidden');
+      fileStatus.classList.add("hidden");
+
+      progressPercent.textContent = "";
+      progressBar.style.width = "0%";
+      speed.textContent = "";
+      downloaded.textContent = "";
 
       // Extra Events
       await tauriEvent.listen('extract_success', () => {
@@ -401,26 +417,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Dateien prüfen bei Start
   invoke("check_required_files")
-    .then((filesOkay) => {
+    .then(([filesOkay, message]) => {
       const playBtn = document.getElementById('playBtn');
       const downloadBtn = document.getElementById('downloadBtn');
       const progressInfo = document.getElementById('progressInfo');
+      const fileStatus = document.getElementById('fileStatus'); // <== Änderung hier!
+
+      fileStatus.classList.remove("hidden");
+      fileStatus.textContent = filesOkay ? `✅ ${message}` : `❌ ${message}`;
 
       if (filesOkay) {
+        fileStatus.classList.add("text-green-400");
+        fileStatus.classList.remove("text-red-400");
         playBtn.classList.remove('hidden');
         downloadBtn.classList.add('hidden');
         progressInfo.classList.add('hidden');
-        status.textContent = "Game is ready!";
       } else {
+        fileStatus.classList.add("text-red-400");
+        fileStatus.classList.remove("text-green-400");
         playBtn.classList.add('hidden');
         downloadBtn.classList.remove('hidden');
         progressInfo.classList.remove('hidden');
-        status.textContent = "Ready to Download";
       }
     })
     .catch((err) => {
       console.error("Fehler beim Überprüfen der Spieldateien:", err);
     });
-  // Prozesse beenden bei Start
+
   invoke("stop_game").catch(console.error);
 });

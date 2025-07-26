@@ -29,17 +29,24 @@
     *::-webkit-scrollbar {
       display: none;
     }
+
+    [data-tauri-drag-region] {
+    -webkit-app-region: drag;
+    }
+    [data-tauri-drag-region="false"] {
+      -webkit-app-region: no-drag;
+    }
   </style>
 </head>
 <body class="min-h-screen text-white bg-gray-900 overflow-hidden" style="font-family: 'Poppins', sans-serif;">
 
-  <!-- Custom Navigation -->
+  <!-- Drag-fähige Navigation -->
   <nav class="bg-gray-800 text-white shadow-lg select-none border-b border-gray-700" data-tauri-drag-region>
-    <div class="w-full h-12 px-6 flex justify-between items-center">
-      
+    <div class="w-full h-12 px-6 flex justify-between items-center" data-tauri-drag-region>
+
       <!-- Left Side: Tabs -->
-      <div class="flex items-center gap-3" data-tauri-drag-region="none">
-        <span class="text-lg font-bold text-yellow-400 pr-6 tracking-wide">WORLD OF WARCRAFT</span>
+      <div class="flex items-center gap-3">
+        <span class="text-lg font-bold text-yellow-400 pr-6 tracking-wide select-none" data-tauri-drag-region>WORLD OF WARCRAFT</span>
 
         <!-- Launcher Tab -->
         <button id="tabDownload"
@@ -67,8 +74,9 @@
       </div>
 
       <!-- Window Controls -->
-      <div class="flex items-center gap-2 select-none">
-        <span class="text-sm text-gray-400 mr-4">v0.2</span>
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-400 mr-4 select-none">v0.2</span>
+
         <!-- Minimize -->
         <button id="minimizeBtn"
           class="bg-gray-700 hover:bg-gray-600 text-lg py-1 px-3 rounded transition-all duration-200 w-8 h-8 flex items-center justify-center">
@@ -172,6 +180,10 @@
 
         <!-- Action Buttons -->
         <div class="p-4 border-t border-gray-700 space-y-3">
+
+          <!-- Statusanzeige über dem Play-Button -->
+          <div id="fileStatus" class="text-sm text-center rounded px-3 py-2 font-medium text-gray-300 bg-black bg-opacity-40 border border-gray-700 hidden"></div>
+
           <button id="downloadBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded transition-all duration-200 flex items-center justify-center text-sm">
             <svg id="downloadIcon" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -193,7 +205,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            Play
+            Start Game
           </button>
 
           <p id="realmError" class="text-red-400 text-xs text-center hidden bg-red-900 border border-red-700 rounded py-1.5 px-3">
