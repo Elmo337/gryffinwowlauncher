@@ -1,17 +1,14 @@
-# IMPORTANT NOTICE
 
-THIS CLIENT IS **NOT** OFFICIALLY ASSOCIATED WITH **GRYFFINWOW**.
-IT IS A CUSTOM LAUNCHER PROVIDED "AS IS" FOR TESTING AND PERSONAL USE ONLY.
-GRYFFINWOW DOES **NOT** ENDORSE, MAINTAIN, OR SUPPORT THIS LAUNCHER.
-
----
-
-## ⚙️ Features
-
-- ✔️ Compatible with **WoW Classic 1.14.2 (Build 42597)**
-- 🔌 Built-in [Hermes Proxy](https://github.com/wowdev/hermes-proxy) for seamless server connection
-- 💻 Cross-platform using [Tauri](https://tauri.app)
-- 🎮 Auto-starts `Wow.exe` after successful connection
+- ✔️ Fully compatible with WoW Classic 1.14.2 (Build 42597)
+- 🔌 Integrated Hermes Proxy for seamless server connections
+- 🖥️ Cross-platform launcher built with Tauri – lightweight, fast, and native
+- 🌐 Realmlist Manager – easily switch between multiple servers with one click
+- 📦 Built-in Addon Downloader – install recommended addons directly from the launcher
+- 📁 Open Folder Button – quickly access your WoW directory for manual adjustments
+- 🧪 File Integrity Checker – verifies required files and ensures your installation is complete (including minimum file size checks)
+- 🎨 Modern, custom UI – sleek dark-themed design with tailored styling and interactive tabs
+- 📥 Smart Downloader – automatic .rar unpacking, progress tracking, and re-download safety handling
+- 🔄 Auto Updater
 
 ---
 
@@ -62,11 +59,3 @@ The `hermesproxy.config` file is preconfigured — no additional setup needed.
 - Launcher supports patching and updates via the internal patch system (optional).
 - Make sure the user has **write access** to the game directory.
 - Folder access are in *%appdata%/gryffin*
-
----
-
-## 💬 Support
-
-Need help or have suggestions?  
-→ Join our Discord: [https://discord.gg/gryffinwow](https://discord.gg/gryffinwow)  
-Or contact the Gryffin WoW dev team directly.
