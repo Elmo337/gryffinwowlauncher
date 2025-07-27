@@ -11,8 +11,8 @@ edition = "2021"
 tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1.0", features = [ "window-start-dragging", "dialog-all", "window-close", "window-minimize", "shell-all"] }
-reqwest = { version = "0.11", features = ["stream"] }
+tauri = { version = "1.0", features = [ "window-start-dragging", "fs-read-file", "shell-all", "process-all", "path-all", "fs-read-dir", "dialog-all", "window-minimize", "window-close", "fs-write-file"] }
+reqwest = { version = "0.11", features = ["stream", "blocking", "json"] }
 futures-util = "0.3"
 tokio = { version = "1.0", features = ["full", "sync"] }
 serde = { version = "1.0", features = ["derive"] }

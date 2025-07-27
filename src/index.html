@@ -75,7 +75,7 @@
 
       <!-- Window Controls -->
       <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-400 mr-4 select-none">v0.2</span>
+        <span class="text-sm text-gray-400 mr-4 select-none">v0.6</span>
 
         <!-- Minimize -->
         <button id="minimizeBtn"
@@ -180,6 +180,20 @@
 
         <!-- Action Buttons -->
         <div class="p-4 border-t border-gray-700 space-y-3">
+
+          <div id="updateBox" class="hidden bg-black bg-opacity-40 text-gray-300 p-4 rounded-xl shadow-md max-w-xl mx-auto mt-6 border border-gray-700">
+            <div class="flex justify-between items-center mb-3">
+              <div class="text-sm font-medium text-yellow-400">⚠️ New Update Available</div>
+              <button id="updateNowBtn" class="bg-yellow-500 text-black font-semibold text-sm px-4 py-1 rounded hover:bg-yellow-400 transition duration-200">
+                Update
+              </button>
+            </div>
+
+            <div class="w-full bg-gray-800 rounded h-3 overflow-hidden">
+              <div id="updateProgressBar" class="bg-yellow-500 h-3 w-0 transition-all duration-300 ease-in-out"></div>
+            </div>
+            <div id="updatePercent" class="text-xs mt-2 text-right text-gray-400">0%</div>
+          </div>
 
           <!-- Statusanzeige über dem Play-Button -->
           <div id="fileStatus" class="text-sm text-center rounded px-3 py-2 font-medium text-gray-300 bg-black bg-opacity-40 border border-gray-700 hidden"></div>

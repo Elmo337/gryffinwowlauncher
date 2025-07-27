@@ -14,6 +14,7 @@ use std::fs::{self};
 use std::os::windows::process::CommandExt;
 use std::process::Stdio;
 use std::thread;
+use serde_json;
 
 
 #[derive(Default)]
@@ -545,10 +546,95 @@ async fn start_download(
     Ok(())
 }
 
+#[tauri::command]
+async fn download_and_update_launcher(config: tauri::State<'_, tauri::Config>) -> Result<(), String> {
+    use std::{fs::write, process::Command};
+    use tokio::io::AsyncWriteExt;
+
+    let url = "http://31.56.45.75/launcher.exe";
+    let client = reqwest::Client::new();
+
+    let response = client
+        .get(url)
+        .send()
+        .await
+        .map_err(|e| format!("Download fehlgeschlagen: {}", e))?;
+
+    let bytes = response
+        .bytes()
+        .await
+        .map_err(|e| format!("Fehler beim Lesen der Bytes: {}", e))?;
+
+    let app_dir = tauri::api::path::app_data_dir(&config)
+        .ok_or("Konnte app_data_dir nicht auflösen")?
+        .join("gryffin");
+
+    std::fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
+
+    let new_path = app_dir.join("launcher-new.exe");
+
+    let mut file = tokio::fs::File::create(&new_path)
+        .await
+        .map_err(|e| format!("Fehler beim Anlegen der Datei: {}", e))?;
+    file.write_all(&bytes)
+        .await
+        .map_err(|e| format!("Fehler beim Schreiben: {}", e))?;
+
+    let exe_path = std::env::current_exe().map_err(|e| e.to_string())?;
+    let updater_path = exe_path.with_file_name("updater.bat");
+
+    let batch = format!(
+        "@echo off\r\n\
+        timeout /t 2 /nobreak >nul\r\n\
+        taskkill /f /pid {}\r\n\
+        del \"{}\"\r\n\
+        copy /Y \"{}\" \"{}\"\r\n\
+        start \"\" \"{}\"\r\n\
+        del \"%~f0\"",
+        std::process::id(),
+        exe_path.display(),
+        new_path.display(),
+        exe_path.display(),
+        exe_path.display()
+    );
+
+    write(&updater_path, batch).map_err(|e| e.to_string())?;
+
+    Command::new("cmd")
+        .args(["/C", updater_path.to_str().unwrap()])
+        .creation_flags(0x08000000) // CREATE_NO_WINDOW
+        .spawn()
+        .map_err(|e| format!("Fehler beim Starten des Updaters: {}", e))?;
+
+    std::process::exit(0);
+}
+
+#[tauri::command]
+fn check_launcher_update_url(current_version: String) -> Result<Option<String>, String> {
+    let version_url = "http://31.56.45.75/launcher-version.json";
+    let response = reqwest::blocking::get(version_url)
+        .map_err(|e| format!("Fehler beim Abrufen: {}", e))?;
+    let json: serde_json::Value = response
+        .json()
+        .map_err(|e| format!("JSON-Fehler: {}", e))?;
+
+    let latest_version = json["version"].as_str().unwrap_or("");
+    let download_url = json["url"].as_str().unwrap_or("");
+
+    if latest_version != current_version {
+        Ok(Some(download_url.to_string()))
+    } else {
+        Ok(None)
+    }
+}
+
+
 fn main() {
+    let context = tauri::generate_context!();
     tauri::Builder::default()
+        .manage(context.config().clone()) // <-- das fehlt bei dir!
         .manage(Arc::new(Mutex::new(DownloadState { active: false })))
-        .invoke_handler(tauri::generate_handler![start_download, check_required_files, start_game, stop_game, load_realmlists, save_realmlist, open_addon_folder, delete_realmlist, install_addon, uninstall_addon, get_installed_addons])
+        .invoke_handler(tauri::generate_handler![download_and_update_launcher, check_launcher_update_url, start_download, check_required_files, start_game, stop_game, load_realmlists, save_realmlist, open_addon_folder, delete_realmlist, install_addon, uninstall_addon, get_installed_addons])
         .run(tauri::generate_context!())
         .expect("Fehler beim Starten der Tauri Anwendung");
 }

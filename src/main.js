@@ -54,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const availableAddons = [
     { name: "Questie", url: "http://31.56.45.75/addons/questie.rar" },
-    { name: "Atlas_ClassicWoW", url: "http://31.56.45.75/addons/atlas.rar" },
     { name: "Bartender4", url: "http://31.56.45.75/addons/bartender.rar" },
     { name: "VendorPrice", url: "http://31.56.45.75/addons/vendor.rar" },
     { name: "Mapster", url: "http://31.56.45.75/addons/mapster.rar" },
@@ -413,6 +412,49 @@ document.addEventListener('DOMContentLoaded', () => {
       downloadIcon.classList.remove('hidden');
       spinner.classList.add('hidden');
     }
+  });
+
+  const CURRENT_LAUNCHER_VERSION = "0.6.0";
+
+  async function checkLauncherUpdate() {
+    try {
+      const updateUrl = await window.__TAURI__.invoke("check_launcher_update_url", {
+        currentVersion: CURRENT_LAUNCHER_VERSION,
+      });
+
+      if (updateUrl) {
+        const box = document.getElementById("updateBox");
+        box.classList.remove("hidden");
+
+        const btn = document.getElementById("updateNowBtn");
+        btn.onclick = () => {
+          downloadAndUpdateWithProgress(updateUrl);
+        };
+      }
+    } catch (e) {
+      console.error("Fehler beim Update-Check:", e);
+    }
+  }
+
+  async function downloadAndUpdateWithProgress(updateUrl) {
+    try {
+      const progressBar = document.getElementById("updateProgressBar");
+      const percentText = document.getElementById("updatePercent");
+
+      progressBar.style.width = "0%";
+      percentText.textContent = "0%";
+
+      await window.__TAURI__.invoke("download_and_update_launcher");
+
+      alert("Update wird installiert...");
+    } catch (err) {
+      console.error("❌ Fehler beim Update:", err);
+      alert("Fehler beim Herunterladen des Updates.");
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    checkLauncherUpdate();
   });
 
   // Dateien prüfen bei Start

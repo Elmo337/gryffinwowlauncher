@@ -24,8 +24,17 @@
         "all": true
       },
       "fs": {
-        "scope": ["$DOWNLOAD", "$HOME", "$DESKTOP"]
-      }
+        "writeFile": true,
+        "readFile": true,
+        "readDir": true,
+        "scope": ["*"]
+      },
+      "path": {
+        "all": true
+      },
+      "process": {
+        "all": true
+    }
     },
     "windows": [
       {
